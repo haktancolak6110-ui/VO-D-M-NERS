@@ -1,0 +1,1258 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOID MINERS</title>
+<style>
+:root {
+  --bg: #050913;
+  --panel: rgba(11, 19, 36, .94);
+  --line: rgba(103, 175, 255, .22);
+  --cyan: #58e7ff;
+  --blue: #438aff;
+  --text: #eaf5ff;
+  --muted: #8ca5c4;
+  --green: #68f2bd;
+  --red: #ff6f85;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, Segoe UI, Arial, sans-serif;
+  overflow: hidden;
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: radial-gradient(ellipse at center, #101c35 0%, #050913 75%);
+}
+#vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,.45) 100%);
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 45px #0007, inset 0 1px #ffffff08;
+  backdrop-filter: blur(14px);
+  border-radius: 12px;
+}
+#authScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(120deg, #040713ee, #061326e8), 
+              radial-gradient(ellipse at 70% 20%, #18426a, transparent 50%);
+}
+.auth-card {
+  width: min(420px, calc(100vw - 32px));
+  padding: 34px;
+}
+.logo {
+  font-size: clamp(35px, 7vw, 54px);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 5px;
+  color: white;
+  text-shadow: 0 0 28px #45cfff88;
+}
+.logo span { color: var(--cyan); }
+.subtitle {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-top: 12px;
+  margin-bottom: 30px;
+}
+.field-label {
+  display: block;
+  font-size: 11px;
+  color: #a8c4e4;
+  letter-spacing: 1.5px;
+  margin: 15px 0 7px;
+}
+.text-input {
+  width: 100%;
+  padding: 13px 14px;
+  color: white;
+  background: #081326;
+  border: 1px solid #294260;
+  border-radius: 7px;
+  outline: none;
+}
+.text-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px #58e7ff16; }
+.primary-btn {
+  border: 1px solid #7feaff80;
+  background: linear-gradient(135deg, #137baf, #3159c7);
+  color: white;
+  padding: 13px 16px;
+  border-radius: 7px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  transition: .18s;
+}
+.primary-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+.secondary-btn {
+  border: 1px solid #344b6b;
+  background: #0b1729;
+  color: #d9eaff;
+  padding: 10px 12px;
+  border-radius: 7px;
+}
+.full { width: 100%; margin-top: 18px; }
+.auth-switch { display: flex; gap: 8px; margin-top: 12px; }
+.auth-switch button { flex: 1; }
+#authMessage {
+  min-height: 19px;
+  margin-top: 12px;
+  color: var(--red);
+  font-size: 12px;
+}
+#topbar {
+  position: fixed;
+  top: 16px;
+  left: 18px;
+  right: 18px;
+  z-index: 3;
+  display: none;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+}
+#topbar > * { pointer-events: auto; }
+.brand-small {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 0 0 18px #58e7ff77;
+}
+.brand-small span { color: var(--cyan); }
+.status {
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-top: 5px;
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: flex-end;
+}
+.stat {
+  padding: 9px 12px;
+  min-width: 85px;
+  background: #081426df;
+  border: 1px solid #3551717d;
+  border-radius: 8px;
+}
+.stat small { display: block; color: var(--muted); font-size: 9px; letter-spacing: 1px; }
+.stat strong { display: block; margin-top: 4px; font-size: 14px; }
+#leftPanel {
+  display: none;
+  position: fixed;
+  z-index: 4;
+  top: 92px;
+  left: 18px;
+  width: 218px;
+  padding: 15px;
+}
+.section-title {
+  font-size: 10px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+.player-name { font-size: 16px; font-weight: 800; }
+.small-muted { color: var(--muted); font-size: 11px; }
+.bar {
+  height: 6px;
+  background: #19263a;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.bar > div { height: 100%; width: 100%; background: linear-gradient(90deg, #39a7ff, #65efff); transition: width .2s; }
+#xpFill { background: linear-gradient(90deg, #8464ff, #df7bff); }
+.stat-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  margin-top: 13px;
+}
+.stat-line span { color: var(--muted); }
+#rightPanel {
+  display: none;
+  position: fixed;
+  z-index: 4;
+  top: 92px;
+  right: 18px;
+  width: 224px;
+  padding: 15px;
+}
+.rank-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #ffffff0b;
+  font-size: 11px;
+}
+.rank-row:last-child { border-bottom: 0; }
+.rank-number { color: var(--cyan); width: 19px; display: inline-block; }
+.rank-score { color: #eacb81; }
+#mission {
+  margin-top: 17px;
+  padding: 11px;
+  border-radius: 8px;
+  background: #0b1a2c;
+  border: 1px solid #27405c;
+}
+#mission p { font-size: 11px; color: #c6d7ed; line-height: 1.5; margin: 6px 0 0; }
+#bottomBar {
+  display: none;
+  position: fixed;
+  z-index: 4;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 17px;
+  padding: 10px 14px;
+  align-items: center;
+  gap: 15px;
+  max-width: calc(100vw - 24px);
+  white-space: nowrap;
+}
+.key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 23px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: #16243a;
+  border: 1px solid #405775;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+}
+.control { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #b8cbe3; }
+#chatBox {
+  display: none;
+  position: fixed;
+  z-index: 5;
+  left: 18px;
+  bottom: 18px;
+  width: min(310px, calc(100vw - 36px));
+  padding: 12px;
+}
+#chatMessages {
+  height: 135px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+  color: #c7d7ec;
+  overflow-wrap: anywhere;
+}
+.chat-line b { color: var(--cyan); }
+.chat-line .system { color: #eacb81; }
+#chatForm { display: flex; gap: 6px; margin-top: 9px; }
+#chatInput { min-width: 0; flex: 1; }
+#chatHint { font-size: 9px; color: #7f98b6; margin-top: 7px; }
+#stationPanel {
+  display: none;
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 28px));
+  padding: 22px;
+}
+.station-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.station-head h2 { margin: 0; font-size: 20px; }
+.close-btn { background: transparent; border: 1px solid #3d5677; color: white; border-radius: 6px; padding: 6px 10px; }
+.shop-item {
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid #263e5a;
+  background: #0a1526;
+  border-radius: 8px;
+}
+.shop-item-top { display: flex; justify-content: space-between; gap: 10px; }
+.shop-item h3 { font-size: 13px; margin: 0 0 5px; }
+.shop-item p { color: var(--muted); font-size: 11px; margin: 0; }
+.shop-item button { margin-top: 10px; width: 100%; }
+#stationNotice { min-height: 16px; margin-top: 12px; color: var(--green); font-size: 11px; }
+#toast {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  top: 78px;
+  transform: translate(-50%, -10px);
+  opacity: 0;
+  pointer-events: none;
+  background: #081a2deF;
+  border: 1px solid #58e7ff66;
+  padding: 11px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 8px 30px #0007;
+  transition: .2s;
+  max-width: calc(100vw - 30px);
+  text-align: center;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#offlineBadge {
+  display: none;
+  color: #ffb1ba;
+  font-size: 10px;
+  margin-top: 5px;
+}
+#centerHint {
+  display: none;
+  position: fixed;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 13px;
+  text-align: center;
+  text-shadow: 0 2px 10px black;
+  pointer-events: none;
+}
+@media (max-width: 720px) {
+  #topbar { left: 9px; right: 9px; top: 9px; }
+  .brand-small { font-size: 14px; }
+  .stat { min-width: auto; padding: 7px 8px; }
+  .stat strong { font-size: 11px; }
+  .stat small { font-size: 8px; }
+  #leftPanel { left: 9px; top: 83px; width: 170px; padding: 11px; }
+  #rightPanel { right: 9px; top: 83px; width: 165px; padding: 11px; }
+  #rightPanel .rank-row { font-size: 9px; }
+  #mission { display: none; }
+  #bottomBar { bottom: 9px; gap: 8px; padding: 8px; }
+  .control { font-size: 9px; }
+  #chatBox { left: 9px; bottom: 55px; width: 220px; }
+  #chatMessages { height: 85px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+<div id="vignette"></div>
+
+<div id="authScreen">
+  <div class="auth-card panel">
+    <div class="logo">VOID <span>MINERS</span></div>
+    <div class="subtitle">GALAKSİ SENİ BEKLİYOR</div>
+
+    <label class="field-label" for="username">KULLANICI ADI</label>
+    <input class="text-input" id="username" maxlength="16" autocomplete="username" placeholder="Kaptan adın">
+
+    <label class="field-label" for="password">ŞİFRE</label>
+    <input class="text-input" id="password" type="password" maxlength="100" autocomplete="current-password" placeholder="Şifren">
+
+    <button class="primary-btn full" id="loginBtn">OYUNA GİR</button>
+    <div class="auth-switch">
+      <button class="secondary-btn" id="registerBtn">HESAP OLUŞTUR</button>
+      <button class="secondary-btn" id="clearTokenBtn">OTURUMU SIFIRLA</button>
+    </div>
+    <div id="authMessage"></div>
+    <div class="small-muted">Hesapların bu oyunun sunucusunda saklanır.</div>
+  </div>
+</div>
+
+<div id="topbar">
+  <div>
+    <div class="brand-small">VOID <span>MINERS</span></div>
+    <div class="status" id="connectionStatus">● BAĞLANIYOR</div>
+    <div id="offlineBadge">SUNUCU BAĞLANTISI KESİLDİ</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><small>KREDİ</small><strong id="credits">0 CR</strong></div>
+    <div class="stat"><small>CEVHER</small><strong id="ore">0</strong></div>
+    <div class="stat"><small>SEVİYE</small><strong id="level">1</strong></div>
+    <div class="stat"><small>ÇEVRİMİÇİ</small><strong id="online">1</strong></div>
+  </div>
+</div>
+
+<div id="leftPanel" class="panel">
+  <div class="section-title">KAPTAN BİLGİLERİ</div>
+  <div class="player-name" id="playerName">Kaptan</div>
+  <div class="small-muted" id="shipName">Keşif Gemisi MK-I</div>
+
+  <div class="stat-line"><span>GEMİ GÜCÜ</span><b id="hpText">100 / 100</b></div>
+  <div class="bar"><div id="hpFill"></div></div>
+
+  <div class="stat-line"><span>DENEYİM</span><b id="xpText">0 / 100 XP</b></div>
+  <div class="bar"><div id="xpFill"></div></div>
+
+  <div class="stat-line"><span>Motor seviyesi</span><b id="speedLevel">1</b></div>
+  <div class="stat-line"><span>Lazer seviyesi</span><b id="miningLevel">1</b></div>
+  <div class="stat-line"><span>Toplam kazı</span><b id="totalMined">0</b></div>
+</div>
+
+<div id="rightPanel" class="panel">
+  <div class="section-title">GALAKSİ LİDERLERİ</div>
+  <div id="leaderboard"></div>
+  <div id="mission">
+    <div class="section-title" style="margin-bottom:5px">GÖREV / 01</div>
+    <p>Asteroitleri kaz, cevherleri uzay istasyonunda sat ve gemini geliştir.</p>
+  </div>
+</div>
+
+<div id="chatBox" class="panel">
+  <div class="section-title">GALAKSİ SOHBETİ</div>
+  <div id="chatMessages"></div>
+  <form id="chatForm">
+    <input class="text-input" id="chatInput" maxlength="180" placeholder="Mesaj yaz...">
+    <button class="primary-btn" type="submit">➤</button>
+  </form>
+  <div id="chatHint">Enter: sohbeti aç · Esc: kapat</div>
+</div>
+
+<div id="bottomBar" class="panel">
+  <div class="control"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> Hareket</div>
+  <div class="control"><span class="key">SPACE</span> Kaz</div>
+  <div class="control"><span class="key">E</span> İstasyon</div>
+  <div class="control"><span class="key">ENTER</span> Sohbet</div>
+</div>
+
+<div id="stationPanel" class="panel">
+  <div class="station-head">
+    <div>
+      <div class="section-title">UZAY İSTASYONU // 01</div>
+      <h2>Merkez Üssü</h2>
+    </div>
+    <button class="close-btn" id="closeStation">✕</button>
+  </div>
+
+  <p class="small-muted">Cevherlerini sat, gemini güçlendir ve daha hızlı kaz.</p>
+
+  <div class="shop-item">
+    <div class="shop-item-top">
+      <div><h3>CEVHER SATIŞI</h3><p>Çantandaki her cevher için 10 kredi kazanırsın.</p></div>
+      <b style="color:#eacb81">10 CR / adet</b>
+    </div>
+    <button class="primary-btn" id="sellBtn">TÜM CEVHERLERİ SAT</button>
+  </div>
+
+  <div class="shop-item">
+    <div class="shop-item-top">
+      <div><h3>⚡ MOTOR YÜKSELTME</h3><p>Hareket hızını artırır.</p></div>
+      <b id="speedPrice">150 CR</b>
+    </div>
+    <button class="secondary-btn" id="buySpeed">MOTORU GELİŞTİR</button>
+  </div>
+
+  <div class="shop-item">
+    <div class="shop-item-top">
+      <div><h3>✦ MADENCİLİK LAZERİ</h3><p>Asteroitleri daha hızlı kazmanı sağlar.</p></div>
+      <b id="miningPrice">150 CR</b>
+    </div>
+    <button class="secondary-btn" id="buyMining">LAZERİ GELİŞTİR</button>
+  </div>
+  <div id="stationNotice"></div>
+</div>
+
+<div id="centerHint"></div>
+<div id="toast"></div>
+
+<script>
+(() => {
+"use strict";
+
+const $ = id => document.getElementById(id);
+const canvas = $("game");
+const ctx = canvas.getContext("2d");
+
+let W = innerWidth;
+let H = innerHeight;
+let dpr = Math.min(devicePixelRatio || 1, 2);
+
+function resize() {
+  W = innerWidth;
+  H = innerHeight;
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(W * dpr);
+  canvas.height = Math.floor(H * dpr);
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener("resize", resize);
+resize();
+
+let socket = null;
+let token = localStorage.getItem("voidMinersToken") || "";
+let connected = false;
+let authenticated = false;
+let state = {
+  me: null,
+  players: [],
+  asteroids: [],
+  leaderboard: [],
+  station: { x: 0, y: 0, radius: 155 },
+  online: 1,
+  world: { width: 6000, height: 6000 }
+};
+
+let camera = { x: 0, y: 0 };
+let stars = [];
+let particles = [];
+let lasers = [];
+let lastFrame = performance.now();
+let lastInput = 0;
+let toastTimer = null;
+let chatOpen = false;
+let stationOpen = false;
+let keys = {};
+let mineHeld = false;
+let minePressed = false;
+let messageId = 0;
+const pending = new Map();
+
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 240; i++) {
+    stars.push({
+      x: random(-4500, 4500),
+      y: random(-4500, 4500),
+      r: random(.4, 1.8),
+      a: random(.2, .85),
+      phase: random(0, Math.PI * 2),
+      speed: random(.4, 1.8)
+    });
+  }
+}
+initStars();
+
+function connect() {
+  if (socket && (socket.readyState === WebSocket.OPEN ||
+                 socket.readyState === WebSocket.CONNECTING)) return;
+
+  const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  socket = new WebSocket(protocol + "//" + location.host);
+
+  socket.addEventListener("open", () => {
+    connected = true;
+    $("connectionStatus").textContent = "● SUNUCUYA BAĞLI";
+    $("connectionStatus").style.color = "#68f2bd";
+    $("offlineBadge").style.display = "none";
+
+    if (token) {
+      send({ type: "auth", action: "resume", token });
+    }
+  });
+
+  socket.addEventListener("message", event => {
+    let m;
+    try { m = JSON.parse(event.data); } catch { return; }
+    handleMessage(m);
+  });
+
+  socket.addEventListener("close", () => {
+    connected = false;
+    $("connectionStatus").textContent = "● BAĞLANTI KESİLDİ";
+    $("connectionStatus").style.color = "#ff6f85";
+    $("offlineBadge").style.display = authenticated ? "block" : "none";
+    if (authenticated) toast("Sunucu bağlantısı kesildi. Sayfayı yenileyip tekrar deneyebilirsin.");
+  });
+
+  socket.addEventListener("error", () => {
+    connected = false;
+    $("connectionStatus").textContent = "● BAĞLANTI HATASI";
+    $("connectionStatus").style.color = "#ff6f85";
+  });
+}
+
+function send(packet) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    toast("Sunucuya bağlı değilsin.");
+    return false;
+  }
+  socket.send(JSON.stringify(packet));
+  return true;
+}
+
+function request(packet) {
+  const id = ++messageId;
+  packet.id = id;
+  send(packet);
+  return id;
+}
+
+function handleMessage(m) {
+  if (m.type === "auth") {
+    if (!m.ok) {
+      authenticated = false;
+      $("authScreen").style.display = "grid";
+      $("authMessage").textContent = m.message || "Giriş başarısız.";
+      if (m.message && m.message.includes("Oturum bulunamadı")) {
+        token = "";
+        localStorage.removeItem("voidMinersToken");
+      }
+      return;
+    }
+
+    authenticated = true;
+    token = m.token || token;
+    if (token) localStorage.setItem("voidMinersToken", token);
+
+    state.me = m.player || state.me;
+    $("authScreen").style.display = "none";
+    showGameUI();
+    updateUI();
+    toast(m.message || "Bağlandın!");
+    return;
+  }
+
+  if (m.type === "state") {
+    state = { ...state, ...m };
+    updateUI();
+    return;
+  }
+
+  if (m.type === "chat") {
+    addChat(m);
+    return;
+  }
+
+  if (m.type === "notice") {
+    toast(m.text || "");
+    return;
+  }
+
+  if (m.type === "reply") {
+    if (!m.ok) {
+      toast(m.message || "İşlem başarısız.");
+      $("stationNotice").textContent = m.message || "";
+    } else {
+      toast(m.message || "İşlem tamamlandı.");
+      $("stationNotice").textContent = m.message || "";
+    }
+
+    if (m.data && m.data.player) {
+      state.me = m.data.player;
+      updateUI();
+    }
+
+    if (m.id) pending.delete(m.id);
+    return;
+  }
+
+  if (m.type === "error") toast(m.message || "Sunucu hatası.");
+}
+
+function auth(action) {
+  $("authMessage").textContent = "";
+  const username = $("username").value.trim();
+  const password = $("password").value;
+
+  if (!username || !password) {
+    $("authMessage").textContent = "Kullanıcı adı ve şifreyi doldur.";
+    return;
+  }
+
+  if (action === "register" && password.length < 4) {
+    $("authMessage").textContent = "Şifre en az 4 karakter olmalı.";
+    return;
+  }
+
+  if (!connected) {
+    $("authMessage").textContent = "Sunucuya bağlanılıyor. Birkaç saniye bekle.";
+    connect();
+    return;
+  }
+
+  send({ type: "auth", action, username, password });
+}
+
+$("loginBtn").addEventListener("click", () => auth("login"));
+$("registerBtn").addEventListener("click", () => auth("register"));
+
+$("password").addEventListener("keydown", e => {
+  if (e.key === "Enter") auth("login");
+});
+$("username").addEventListener("keydown", e => {
+  if (e.key === "Enter") $("password").focus();
+});
+
+$("clearTokenBtn").addEventListener("click", () => {
+  token = "";
+  localStorage.removeItem("voidMinersToken");
+  $("authMessage").textContent = "Kayıtlı oturum silindi. Şimdi giriş yapabilirsin.";
+});
+
+function showGameUI() {
+  $("topbar").style.display = "flex";
+  $("leftPanel").style.display = "block";
+  $("rightPanel").style.display = "block";
+  $("bottomBar").style.display = "flex";
+  $("chatBox").style.display = "block";
+}
+
+function updateUI() {
+  const p = state.me;
+  if (!p) return;
+
+  $("credits").textContent = Math.floor(p.credits || 0) + " CR";
+  $("ore").textContent = p.ore || 0;
+  $("level").textContent = p.level || 1;
+  $("online").textContent = state.online || 1;
+  $("playerName").textContent = p.username;
+  $("hpText").textContent = Math.ceil(p.hp || 0) + " / 100";
+  $("hpFill").style.width = Math.max(0, Math.min(100, p.hp || 0)) + "%";
+
+  const needed = 100 + ((p.level || 1) - 1) * 50;
+  $("xpText").textContent = (p.xp || 0) + " / " + needed + " XP";
+  $("xpFill").style.width = Math.min(100, (p.xp || 0) / needed * 100) + "%";
+
+  $("speedLevel").textContent = p.speedLevel || 1;
+  $("miningLevel").textContent = p.miningLevel || 1;
+  $("totalMined").textContent = p.totalMined || 0;
+  $("speedPrice").textContent = (p.speedLevel || 1) * 150 + " CR";
+  $("miningPrice").textContent = (p.miningLevel || 1) * 150 + " CR";
+
+  const lb = $("leaderboard");
+  lb.replaceChildren();
+  (state.leaderboard || []).forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "rank-row";
+
+    const name = document.createElement("span");
+    const num = document.createElement("span");
+    num.className = "rank-number";
+    num.textContent = String(index + 1).padStart(2, "0");
+
+    const username = document.createElement("span");
+    username.textContent = item.username;
+    name.append(num, username);
+
+    const score = document.createElement("b");
+    score.className = "rank-score";
+    score.textContent = item.score + " CR";
+
+    row.append(name, score);
+    lb.append(row);
+  });
+
+  if (!lb.childElementCount) {
+    const empty = document.createElement("div");
+    empty.className = "small-muted";
+    empty.textContent = "Henüz lider yok.";
+    lb.append(empty);
+  }
+}
+
+function addChat(m) {
+  const box = $("chatMessages");
+  const row = document.createElement("div");
+  row.className = "chat-line";
+
+  const name = document.createElement("b");
+  name.textContent = (m.username || "Bilinmeyen") + ": ";
+  if (m.username === "SİSTEM") name.className = "system";
+
+  const text = document.createElement("span");
+  text.textContent = m.text || "";
+
+  row.append(name, text);
+  box.append(row);
+
+  while (box.children.length > 60) box.firstChild.remove();
+  box.scrollTop = box.scrollHeight;
+}
+
+$("chatForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const input = $("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  send({ type: "chat", text });
+  input.value = "";
+  input.blur();
+  chatOpen = false;
+});
+
+function toast(text) {
+  const el = $("toast");
+  el.textContent = text;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+function openStation() {
+  if (!state.me) return;
+  const d = Math.hypot(state.me.x, state.me.y);
+  stationOpen = true;
+  $("stationPanel").style.display = "block";
+
+  if (d <= 155) {
+    $("stationNotice").textContent = "İstasyondasın. İşlem yapmak için bir seçenek seç.";
+  } else {
+    $("stationNotice").textContent = "İstasyon uzakta! Merkezdeki mavi halkaya yaklaş.";
+  }
+}
+
+function closeStation() {
+  stationOpen = false;
+  $("stationPanel").style.display = "none";
+}
+
+$("closeStation").addEventListener("click", closeStation);
+$("sellBtn").addEventListener("click", () => request({ type: "sell" }));
+$("buySpeed").addEventListener("click", () => request({ type: "buy", item: "speed" }));
+$("buyMining").addEventListener("click", () => request({ type: "buy", item: "mining" }));
+
+addEventListener("keydown", e => {
+  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+    e.preventDefault();
+  }
+
+  if (!authenticated) return;
+
+  if (e.code === "Escape") {
+    if (stationOpen) closeStation();
+    if (chatOpen) {
+      chatOpen = false;
+      $("chatInput").blur();
+    }
+    return;
+  }
+
+  if (e.code === "Enter") {
+    if (stationOpen) return;
+    chatOpen = !chatOpen;
+    if (chatOpen) {
+      $("chatInput").focus();
+    } else {
+      $("chatInput").blur();
+    }
+    return;
+  }
+
+  if (document.activeElement === $("chatInput")) return;
+  if (stationOpen) return;
+
+  if (e.code === "KeyE" && !e.repeat) {
+    openStation();
+    return;
+  }
+
+  if (e.code === "Space") {
+    mineHeld = true;
+    minePressed = true;
+    return;
+  }
+
+  keys[e.code] = true;
+});
+
+addEventListener("keyup", e => {
+  keys[e.code] = false;
+  if (e.code === "Space") mineHeld = false;
+});
+
+addEventListener("blur", () => {
+  keys = {};
+  mineHeld = false;
+});
+
+function sendInput(now) {
+  if (!authenticated || !connected || now - lastInput < 50) return;
+  lastInput = now;
+
+  const up = keys.KeyW || keys.ArrowUp;
+  const down = keys.KeyS || keys.ArrowDown;
+  const left = keys.KeyA || keys.ArrowLeft;
+  const right = keys.KeyD || keys.ArrowRight;
+
+  const p = state.me;
+  let angle = p ? p.angle : 0;
+  const dx = (right ? 1 : 0) - (left ? 1 : 0);
+  const dy = (down ? 1 : 0) - (up ? 1 : 0);
+  if (dx || dy) angle = Math.atan2(dy, dx);
+
+  send({
+    type: "input",
+    keys: { up, down, left, right, angle, mine: minePressed || mineHeld }
+  });
+  minePressed = false;
+}
+
+function worldToScreen(x, y) {
+  return { x: x - camera.x + W / 2, y: y - camera.y + H / 2 };
+}
+
+function drawBackground(time) {
+  ctx.fillStyle = "#050913";
+  ctx.fillRect(0, 0, W, H);
+
+  const nebula = ctx.createRadialGradient(W * .55, H * .45, 0, W * .55, H * .45, Math.max(W, H) * .65);
+  nebula.addColorStop(0, "#142646");
+  nebula.addColorStop(.5, "#091426");
+  nebula.addColorStop(1, "#040711");
+  ctx.fillStyle = nebula;
+  ctx.fillRect(0, 0, W, H);
+
+  for (const s of stars) {
+    let sx = ((s.x - camera.x * .16) % (W + 900) + (W + 900)) % (W + 900) - 450;
+    let sy = ((s.y - camera.y * .16) % (H + 900) + (H + 900)) % (H + 900) - 450;
+    const alpha = s.a * (.7 + Math.sin(time * .001 * s.speed + s.phase) * .3);
+    ctx.fillStyle = `rgba(185,220,255,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(sx, sy, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Uzay haritası ızgarası
+  const grid = 180;
+  const startX = ((-camera.x + W / 2) % grid + grid) % grid;
+  const startY = ((-camera.y + H / 2) % grid + grid) % grid;
+
+  ctx.strokeStyle = "rgba(69,126,183,.075)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = startX; x < W; x += grid) {
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+  }
+  for (let y = startY; y < H; y += grid) {
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+  }
+  ctx.stroke();
+}
+
+function drawAsteroid(a, time) {
+  const pos = worldToScreen(a.x, a.y);
+  if (pos.x < -100 || pos.x > W + 100 || pos.y < -100 || pos.y > H + 100) return;
+
+  const r = a.radius || 25;
+  const color = a.type === "gold" ? "#e8b95f" : a.type === "crystal" ? "#d77cff" : "#8799b3";
+  const glow = a.type === "gold" ? "#d99b3c" : a.type === "crystal" ? "#a94dff" : "#6e9dc9";
+
+  ctx.save();
+  ctx.translate(pos.x, pos.y);
+  ctx.rotate((a.rotation || 0) + time * (a.spin || .1) * .00015);
+
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = a.type === "crystal" ? 18 : 8;
+
+  const sides = 8;
+  const points = [];
+  for (let i = 0; i < sides; i++) {
+    const ang = i / sides * Math.PI * 2;
+    const rr = r * (.78 + .24 * Math.sin(i * 12.34 + a.id));
+    points.push([Math.cos(ang) * rr, Math.sin(ang) * rr]);
+  }
+
+  ctx.beginPath();
+  points.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+  ctx.closePath();
+  ctx.fillStyle = a.type === "crystal" ? "#38264d" : a.type === "gold" ? "#51432b" : "#26364b";
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = color + "66";
+    ctx.beginPath();
+    ctx.moveTo(points[i][0] * .2, points[i][1] * .2);
+    ctx.lineTo(points[(i + 3) % sides][0] * .6, points[(i + 3) % sides][1] * .6);
+    ctx.stroke();
+  }
+
+  if (r > 25) {
+    ctx.fillStyle = color;
+    ctx.globalAlpha = .8;
+    ctx.beginPath();
+    ctx.arc(-r * .25, -r * .18, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawStation(time) {
+  const s = state.station || { x: 0, y: 0, radius: 155 };
+  const p = worldToScreen(s.x, s.y);
+
+  ctx.save();
+  ctx.translate(p.x, p.y);
+
+  const pulse = 1 + Math.sin(time * .0015) * .035;
+
+  ctx.strokeStyle = "#58e7ff30";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([7, 9]);
+  ctx.beginPath();
+  ctx.arc(0, 0, 155 * pulse, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.shadowColor = "#44caff";
+  ctx.shadowBlur = 28;
+  ctx.fillStyle = "#102b46";
+  ctx.strokeStyle = "#66eaff";
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 54, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2 + time * .00012;
+    ctx.save();
+    ctx.rotate(a);
+    ctx.fillStyle = "#1b4665";
+    ctx.strokeStyle = "#5bdfff";
+    ctx.fillRect(47, -8, 36, 16);
+    ctx.strokeRect(47, -8, 36, 16);
+    ctx.fillStyle = "#8df4ff";
+    ctx.fillRect(57, -2, 16, 4);
+    ctx.restore();
+  }
+
+  ctx.fillStyle = "#06111f";
+  ctx.beginPath();
+  ctx.arc(0, 0, 23, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#a1f7ff";
+  ctx.stroke();
+
+  ctx.fillStyle = "#e7fbff";
+  ctx.font = "bold 10px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("STATION", 0, 4);
+  ctx.fillStyle = "#70cfe9";
+  ctx.font = "10px Arial";
+  ctx.fillText("MERKEZ ÜSSÜ", 0, 76);
+
+  ctx.restore();
+}
+
+function drawShip(x, y, angle, color, isMe, name) {
+  const pos = worldToScreen(x, y);
+  if (pos.x < -100 || pos.x > W + 100 || pos.y < -100 || pos.y > H + 100) return;
+
+  ctx.save();
+  ctx.translate(pos.x, pos.y);
+  ctx.rotate(angle || 0);
+
+  if (isMe) {
+    ctx.strokeStyle = "#58e7ff36";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, 29, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Motor parıltısı
+  ctx.shadowColor = "#43aaff";
+  ctx.shadowBlur = 13;
+  ctx.fillStyle = "#4d9dff";
+  ctx.beginPath();
+  ctx.moveTo(-14, -6);
+  ctx.lineTo(-27 - Math.random() * 5, 0);
+  ctx.lineTo(-14, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Gövde
+  ctx.beginPath();
+  ctx.moveTo(22, 0);
+  ctx.lineTo(4, -13);
+  ctx.lineTo(-12, -11);
+  ctx.lineTo(-7, 0);
+  ctx.lineTo(-12, 11);
+  ctx.lineTo(4, 13);
+  ctx.closePath();
+
+  const grad = ctx.createLinearGradient(-12, -10, 22, 10);
+  grad.addColorStop(0, "#47617f");
+  grad.addColorStop(.55, "#d6e8f4");
+  grad.addColorStop(1, "#6d93b8");
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = isMe ? "#8cf4ff" : color;
+  ctx.lineWidth = isMe ? 1.8 : 1.2;
+  ctx.fill();
+  ctx.stroke();
+
+  // Kokpit
+  ctx.fillStyle = "#123d5e";
+  ctx.strokeStyle = "#69eaff";
+  ctx.beginPath();
+  ctx.ellipse(8, 0, 6, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Kanat çizgileri
+  ctx.strokeStyle = "#4b6e91";
+  ctx.beginPath();
+  ctx.moveTo(-6, -9);
+  ctx.lineTo(4, -3);
+  ctx.moveTo(-6, 9);
+  ctx.lineTo(4, 3);
+  ctx.stroke();
+
+  ctx.restore();
+
+  if (name) {
+    ctx.font = isMe ? "bold 11px Arial" : "10px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = isMe ? "#a6f6ff" : "#d4e4f5";
+    ctx.fillText(name, pos.x, pos.y + 37);
+  }
+}
+
+function drawParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+
+    if (p.life <= 0) {
+      particles.splice(i, 1);
+      continue;
+    }
+
+    const pos = worldToScreen(p.x, p.y);
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function spawnParticles(x, y, color, amount = 12) {
+  for (let i = 0; i < amount; i++) {
+    const a = random(0, Math.PI * 2);
+    const speed = random(25, 120);
+    const life = random(.25, .8);
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * speed,
+      vy: Math.sin(a) * speed,
+      size: random(1, 3),
+      life,
+      maxLife: life,
+      color
+    });
+  }
+}
+
+function drawHudHints() {
+  if (!state.me || !authenticated) return;
+
+  const p = state.me;
+  const d = Math.hypot(p.x, p.y);
+  const hint = $("centerHint");
+
+  if (d < 220 && !stationOpen) {
+    hint.style.display = "block";
+    hint.innerHTML = "✦ <b>UZAY İSTASYONU</b><br><span style='font-size:11px;color:#9bbbd7'>E tuşuyla istasyon menüsünü aç</span>";
+  } else {
+    hint.style.display = "none";
+  }
+}
+
+function render(now) {
+  const dt = Math.min(.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+
+  sendInput(now);
+  drawBackground(now);
+
+  if (state.me && authenticated) {
+    // Kamera oyuncuyu yumuşak biçimde takip eder.
+    const targetX = state.me.x;
+    const targetY = state.me.y;
+    const smoothing = 1 - Math.pow(.001, dt);
+    camera.x += (targetX - camera.x) * smoothing;
+    camera.y += (targetY - camera.y) * smoothing;
+
+    drawStation(now);
+
+    for (const a of state.asteroids || []) {
+      drawAsteroid(a, now);
+    }
+
+    for (const p of state.players || []) {
+      drawShip(p.x, p.y, p.angle, "#ffb86b", false, p.username);
+    }
+
+    drawShip(
+      state.me.x, state.me.y, state.me.angle,
+      "#58e7ff", true, state.me.username
+    );
+
+    drawParticles(dt);
+    drawHudHints();
+  } else {
+    // Giriş ekranında dekoratif gemi
+    const x = W * .77;
+    const y = H * .53 + Math.sin(now * .001) * 12;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.sin(now * .0005) * .12);
+    ctx.scale(2.2, 2.2);
+    ctx.fillStyle = "#1e5078";
+    ctx.shadowColor = "#55dfff";
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.moveTo(30, 0);
+    ctx.lineTo(-12, -18);
+    ctx.lineTo(-7, 0);
+    ctx.lineTo(-12, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#8af4ff";
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);
+connect();
+
+})();
+</script>
+</body>
+</html>
